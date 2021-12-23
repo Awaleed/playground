@@ -1,0 +1,63 @@
+
+// Break Point
+
+// For Small Devices (Mobile Devices)
+$screen-xs: 576px;
+$screen-sm: 576px;
+$screen-md: 768px;
+$screen-lg: 992px;
+$screen-xl: 1200px;
+$screen-xxl: 1400px;
+$screen-xxxl: 1600px;
+
+@mixin xs-md{
+    @media (min-width: 1px) and (max-width: 992px) {
+        @content;
+    }
+}
+
+@mixin xs{
+    @media only screen and (max-width: $screen-xs){
+        @content;
+    }
+}
+
+@mixin sm{
+    @media only screen and (min-width: $screen-sm){
+        @content;
+    }
+}
+
+@mixin md{
+    @media only screen and (min-width: $screen-md){
+        @content;
+    }
+}
+
+@mixin lg{
+    @media only screen and (min-width: $screen-lg){
+        @content;
+    }
+}
+
+@mixin xl{
+    @media only screen and (min-width: $screen-xl){
+        @content;
+    }
+}
+
+@mixin xxl{
+    @media only screen and (min-width: $screen-xxl){
+        @content;
+    }
+}
+
+@mixin xxxl{
+    @media only screen and (min-width: $screen-xxxl){
+        @content;
+    }
+}
+
+// To use this function, use @include to call it
+// Example @include lg{background-color: blue;}
+// #2      @include xl{background-color: red;color: black;}

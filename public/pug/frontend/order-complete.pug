@@ -1,0 +1,62 @@
+doctype html
+html(dir="rtl", lang="ar")
+  include ./mixins/all.pug
+  +head(" مرحبا Rahma Mohamed ")
+  body.bg-white
+    .container
+      // order complete
+      .order-complete
+        .row
+          .col-lg-5.order-lg-1.order-2
+            .bg-white.img-container
+              img.img-fluid(src="./images/order-complete.png", alt="order complete")
+          .col-lg-6.order-lg-2.order-1
+            .order-container
+              .order-details
+                h1.text-center تفاصيل الطلب
+                // order number
+                .order-block.d-flex.justify-content-between.mb-3
+                  h4.title-font
+                    | رقم الطلب
+                    span.ms-3 #64631
+
+                  a.text-success.m-color-text-hover.order-track(href="#") تتبع الطلب
+
+                .order-block.mb-3
+                    - for (x=1; x <= 3; x++)
+                      // order item
+                      .d-flex.justify-content-between.mb-2.border-bottom.py-3.order-item
+                          div
+                            .d-flex
+                              span.text-success.me-2 1x
+                              div
+                                h4.title-font.mb-0 Vegan Quinoa Salad
+                                p.mb-0.text-muted سبايسي - بيبسي كبير - صلصة بيضاء
+                                p.mb-0.text-muted - صوص اضافة +1.5 SR
+                          span.text-dark 31 SR
+
+                .order-block
+                  // order detail
+                  .d-flex.justify-content-between.mb-2
+                    h4.title-font إجمالي الطلب
+                    span.text-dark 31 SR
+
+                  .d-flex.justify-content-between.mb-2
+                    h4.title-font التوصيل
+                    span.text-dark 2.5 SR
+
+                  .d-flex.justify-content-between
+                    h4.title-font إجمالي
+                    span.m-color-text 32.5 SR
+
+
+                .actions.my-4
+                  a.link.m-color-bg.s-color-bg-hover.me-2(href="#")
+                    i.mbi.mbi-arrow-right
+                    | تتبيع الطلب
+
+                  a.link.d-color-bg.s-color-bg-hover.ms-2(href="#")
+                    | الرئيسية
+                    i.mbi.mbi-arrow-left
+
+    include ./includes/scripts

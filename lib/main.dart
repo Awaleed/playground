@@ -1,6 +1,17 @@
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:faker/faker.dart';
 import 'package:flutter/material.dart';
+import 'package:supercharged/supercharged.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:split_view/split_view.dart';
+
+import 'config/app_config.dart';
+import 'core/new_api_caller.dart';
+import 'cubits/base_data_cubit/base_data_cubit.dart';
+import 'cubits/simple_data_cubit.dart';
+import 'generated/l10n.dart';
+import 'helpers/ui_utils.dart';
+import 'models/teacher_model.dart';
+import 'teacher_details/teacher_details.dart';
 
 void main() {
   runApp(const MyApp());
@@ -16,72 +27,377 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
+      localizationsDelegates: const [
+        S.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      locale: const Locale('ar'),
+      supportedLocales: const [Locale('ar')],
       home: const MyHomePage(),
     );
   }
 }
 
-class MyHomePage extends StatelessWidget {
+class MyHomePage extends StatefulWidget {
   const MyHomePage({Key? key}) : super(key: key);
+
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+enum FilterType { all, uncategorized, deleted, selected }
+enum SortBy { name, profileCompletion, registerDate }
+enum SortDirection { ascending, descending }
+
+extension on FilterType {
+  String get name {
+    switch (this) {
+      case FilterType.all:
+        return 'الكل';
+      case FilterType.uncategorized:
+        return 'غير مصنف';
+      case FilterType.deleted:
+        return 'تم الحذف';
+      case FilterType.selected:
+        return 'المحدد';
+    }
+  }
+
+  Color get color {
+    switch (this) {
+      case FilterType.all:
+        return Colors.transparent;
+      case FilterType.uncategorized:
+        return Colors.transparent;
+      case FilterType.deleted:
+        return Colors.red;
+      case FilterType.selected:
+        return Colors.green;
+    }
+  }
+}
+
+extension on SortBy {
+  String get name {
+    switch (this) {
+      case SortBy.name:
+        return 'الاسم';
+      case SortBy.profileCompletion:
+        return 'اكتمال البروفايل';
+      case SortBy.registerDate:
+        return 'تاريخ التسجيل';
+    }
+  }
+}
+
+extension on SortDirection {
+  String get name {
+    switch (this) {
+      case SortDirection.ascending:
+        return 'تصاعدي';
+      case SortDirection.descending:
+        return 'تنازلي';
+    }
+  }
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  TeacherModel? selectedTeacher;
+  bool showFilter = true;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: const Icon(Icons.photo_library_rounded),
-        title: const Text('My Image Gallery'),
+        leading: IconButton(
+          icon: Icon(showFilter ? Icons.hide_source : Icons.filter_alt_rounded),
+          onPressed: () {
+            setState(() => showFilter = !showFilter);
+          },
+        ),
+        title: Text(S.current.teachers),
       ),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints.tightFor(width: 800),
-          child: GridView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            itemCount: 15,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
-              childAspectRatio: 1,
-              crossAxisSpacing: 10,
-              mainAxisSpacing: 10,
-            ),
-            itemBuilder: (context, index) {
-              final image = 'https://source.unsplash.com/random/$index';
-              return Card(
-                clipBehavior: Clip.hardEdge,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    CachedNetworkImage(imageUrl: image, fit: BoxFit.cover),
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      child: Container(
-                        alignment: Alignment.centerLeft,
-                        padding: const EdgeInsets.all(10),
-                        decoration: const BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [Colors.black, Colors.transparent],
-                            begin: Alignment.bottomLeft,
-                            end: Alignment.topRight,
-                            stops: [.1, .5],
+      body: SplitView(
+        viewMode: SplitViewMode.Horizontal,
+        indicator: const SplitIndicator(viewMode: SplitViewMode.Horizontal),
+        activeIndicator: const SplitIndicator(
+          viewMode: SplitViewMode.Horizontal,
+          isActive: true,
+        ),
+        children: [
+          if (selectedTeacher == null)
+            const SizedBox()
+          else
+            TeacherDetailsScreen(teacher: selectedTeacher!),
+          TeachersList(
+            showFilter: showFilter,
+            value: selectedTeacher,
+            onChanged: (value) => setState(() => selectedTeacher = value),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+final cubit = SimpleDataCubit<List<TeacherModel>>(
+  logResponse: false,
+  parser: (res) {
+    return listParser(res, (data) => TeacherModel.fromJson(data));
+  },
+  path: '/test',
+)..load();
+
+class TeachersList extends StatefulWidget {
+  const TeachersList({
+    Key? key,
+    required this.showFilter,
+    required this.onChanged,
+    required this.value,
+  }) : super(key: key);
+
+  final bool showFilter;
+  final TeacherModel? value;
+  final ValueChanged<TeacherModel> onChanged;
+
+  @override
+  State<TeachersList> createState() => _TeachersListState();
+}
+
+class _TeachersListState extends State<TeachersList> {
+  String q = '';
+  FilterType filterType = FilterType.all;
+  SortBy sortBy = SortBy.name;
+  SortDirection sortDirection = SortDirection.ascending;
+
+  InputDecoration buildDecoration(String label) =>
+      InputDecoration(border: const OutlineInputBorder(), labelText: label);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        AnimatedSize(
+          duration: 300.milliseconds,
+          child: widget.showFilter
+              ? Material(
+                  color: Colors.white,
+                  elevation: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 5),
+                          child: TextField(
+                            decoration: buildDecoration('ابحث هنا'),
+                            onChanged: (value) {
+                              setState(() => q = value);
+                            },
                           ),
                         ),
-                        child: Text(
-                          faker.lorem.word(),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    )
-                  ],
-                ),
+                        const SizedBox(height: 20),
+                        Row(
+                          children: [
+                            DropdownButtonFormField<FilterType>(
+                              decoration: buildDecoration('فلترة'),
+                              value: filterType,
+                              items: FilterType.values
+                                  .map(
+                                    (e) => DropdownMenuItem<FilterType>(
+                                      value: e,
+                                      child: Text(e.name),
+                                    ),
+                                  )
+                                  .toList(),
+                              onChanged: (value) {
+                                setState(() {
+                                  filterType = value ?? filterType;
+                                });
+                              },
+                            ),
+                            DropdownButtonFormField<SortBy>(
+                              decoration: buildDecoration('ترتيب'),
+                              value: sortBy,
+                              items: SortBy.values
+                                  .map(
+                                    (e) => DropdownMenuItem<SortBy>(
+                                      value: e,
+                                      child: Text(e.name),
+                                    ),
+                                  )
+                                  .toList(),
+                              onChanged: (value) {
+                                setState(() {
+                                  sortBy = value ?? sortBy;
+                                });
+                              },
+                            ),
+                            DropdownButtonFormField<SortDirection>(
+                              decoration: buildDecoration('تصاعدي/تنازلي'),
+                              value: sortDirection,
+                              items: SortDirection.values
+                                  .map(
+                                    (e) => DropdownMenuItem<SortDirection>(
+                                      value: e,
+                                      child: Text(e.name),
+                                    ),
+                                  )
+                                  .toList(),
+                              onChanged: (value) {
+                                setState(() {
+                                  sortDirection = value ?? sortDirection;
+                                });
+                              },
+                            ),
+                          ]
+                              .map(
+                                (e) => Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 5),
+                                    child: e,
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                        )
+                      ],
+                    ),
+                  ),
+                )
+              : const SizedBox.shrink(),
+        ),
+        Expanded(
+          child: BlocBuilder<SimpleDataCubit<List<TeacherModel>>,
+              BaseDataCubitState<List<TeacherModel>>>(
+            bloc: cubit,
+            builder: (context, state) {
+              return state.when(
+                initial: () => const Center(child: CircularProgressIndicator()),
+                loading: () => const Center(child: CircularProgressIndicator()),
+                failure: (error) => Center(child: Text(error.message)),
+                success: (value) {
+                  final values = List<TeacherModel>.from(value);
+                  values.retainWhere((element) => element.search(q));
+                  if (filterType != FilterType.all) {
+                    values.retainWhere(
+                      (element) => element.filterType == filterType,
+                    );
+                  }
+                  values.sort((a, b) {
+                    TeacherModel first, second;
+                    switch (sortDirection) {
+                      case SortDirection.ascending:
+                        first = a;
+                        second = b;
+                        break;
+                      case SortDirection.descending:
+                        first = b;
+                        second = a;
+                        break;
+                    }
+
+                    switch (sortBy) {
+                      case SortBy.name:
+                        return (first.nameAr ?? '')
+                            .compareTo(second.nameAr ?? '');
+                      case SortBy.profileCompletion:
+                        return first.profileCompletionPercentage
+                            .compareTo(second.profileCompletionPercentage);
+                      case SortBy.registerDate:
+                        return first.createdAt.compareTo(second.createdAt);
+                    }
+                  });
+
+                  return ListView.builder(
+                    itemCount: values.length,
+                    itemBuilder: (context, index) => TeacherCard(
+                      values[index],
+                      isSelected: values[index] == widget.value,
+                      onTap: () => widget.onChanged(values[index]),
+                    ),
+                  );
+                },
               );
             },
           ),
         ),
-      ),
+      ],
+    );
+  }
+}
+
+class TeacherCard extends StatelessWidget {
+  const TeacherCard(
+    this.value, {
+    Key? key,
+    required this.isSelected,
+    required this.onTap,
+  }) : super(key: key);
+
+  final TeacherModel value;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return ListTile(
+          onTap: onTap,
+          tileColor: isSelected
+              ? kMainColor.shade200
+              : UiUtils.getWhiteColorWithBrightness(context),
+          title: Text(value.nameAr ?? 'NULL'),
+          trailing: PopupMenuButton<FilterType>(
+            // value: value.filterType,
+            itemBuilder: (context) => FilterType.values
+                .sublist(1)
+                .map(
+                  (e) => PopupMenuItem<FilterType>(
+                    value: e,
+                    child: Text(e.name),
+                  ),
+                )
+                .toList(),
+
+            // child: value.filterType.name,
+            onSelected: (value) {
+              setState(() {
+                this.value.filterType = value;
+              });
+            },
+          ),
+          leading: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                height: 100,
+                width: 20,
+                color: value.filterType.color,
+              ),
+              UiUtils.buildAvatarImage(value.img),
+            ],
+          ),
+          subtitle: Row(
+            children: [
+              Text(
+                  '${(value.profileCompletionPercentage * 100).toStringAsFixed(0)}%'),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: CircularProgressIndicator(
+                  value: value.profileCompletionPercentage,
+                ),
+              )
+            ],
+          ),
+        );
+      },
     );
   }
 }

@@ -1,0 +1,22 @@
+doctype html
+html(dir="rtl", lang="ar")
+  include ./mixins/all.pug
+  +head(" اختيار نوع العميل ")
+  body.g-color-bg
+    .container-fluid
+      // auth
+      .auth.text-center.mx-auto
+        img.img-fluid(src="./images/5.png", alt="food")
+        h6.img-title أسركم
+        div.type-container
+          h6.title.title-font مرحبا بك
+          p هل انت عميل ام أسرة منتجة
+          a.type(href="new-register-phone.html") التسجيل كأسرة منتجة
+          a.type(href="new-register-phone.html") التسجيل كعميل
+          .actions.mb-3
+            a.new(href="new-lognin-phone.html") تسجيل جديد
+            a.arrow(href="#")
+              i.mbi.mbi-arrow-left
+          p
+            | لديك حساب ؟
+            a.m-color-text.mx-1.text-decoration-none.md-color-text-hover(href="login-with-phone.html")  تسجيل دخول

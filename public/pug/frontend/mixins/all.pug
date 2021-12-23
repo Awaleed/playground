@@ -1,0 +1,27 @@
+mixin head(title)
+  head
+    //- +meta-title(" من نحن ")
+    meta(charset="utf-8")
+    meta(name="viewport", content="width=device-width,initial-scale=1")
+    meta(http-equiv="x-ua-compatible", content="ie=edge")
+    title=title
+    include ../includes/styles
+
+mixin input-font-icon(type, icon, title)
+  .mb-3.position-relative.input-style-container.form-floating.input-style-container-with-icon
+    span.form-icon
+     i(class="mbi "+icon)
+    if type == "password"
+      i.mbi.mbi-eye.icon.show-password.pointer
+    input.input-style.form-control(type=type, placeholder=title)
+    label=title
+
+mixin input-img-icon(type, src, title)
+  .mb-3.position-relative.input-style-container.form-floating.input-style-container-with-icon
+    span.form-icon
+      img(src="./images/icons/"+src)
+    if type == "password"
+      i.mbi.mbi-eye.icon.show-password.pointer
+    input.input-style.form-control(type=type, placeholder=title)
+    label=title
+

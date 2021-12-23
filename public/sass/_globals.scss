@@ -1,0 +1,82 @@
+/*========== start globals ==========*/
+:root {
+    --m-color: #FFC40D;
+    --md-color: #FCAE17;
+    --s-color: #F97516;
+    --g-color: #F8F7FB;
+    --d-color: #262626;
+}
+
+body {
+    font-family: 'Noto Naskh Arabic', 'Almarai', serif;;
+    font-weight: 500;
+    color: #222;
+    position: relative;
+}
+
+/* title-font */
+.title-font {
+    font-weight: 600;
+}
+
+@each $colorname, $color in
+(m-color-text, var(--m-color)),
+(md-color-text, var(--md-color)),
+(s-color-text, var(--s-color)),
+(d-color-text, var(--d-color)),
+(g-color-text, var(--g-color))
+{
+    /* color-text */
+    .#{$colorname} {
+        color:#{$color};
+    }
+}
+
+@each $colorname, $color in
+(m-color-text-hover, var(--m-color)),
+(md-color-text-hover, var(--md-color)),
+(s-color-text-hover, var(--s-color)),
+(d-color-text-hover, var(--d-color)),
+(w-color-text-hover, #fff),
+(g-color-text-hover, var(--g-color))
+{
+    /* color-text-hover */
+    .#{$colorname}:hover {
+        color:#{$color} !important;
+    }
+}
+
+
+@each $colorname, $color in
+(m-color-bg, var(--m-color)),
+(md-color-bg, var(--md-color)),
+(s-color-bg, var(--s-color)),
+(d-color-bg, var(--d-color)),
+(g-color-bg, var(--g-color))
+{
+    /* background-color */
+    .#{$colorname} {
+        background-color:#{$color};
+    }
+}
+
+@each $colorname, $color in
+(m-color-bg-hover, var(--m-color)),
+(md-color-bg-hover, var(--md-color)),
+(s-color-bg-hover, var(--s-color)),
+(d-color-bg-hover, var(--d-color)),
+(g-color-bg-hover, var(--g-color))
+{
+    /* background-color-hover */
+    .#{$colorname}:hover {
+        background-color:#{$color} !important;
+    }
+}
+
+/* pointer */
+.pointer {
+    cursor: pointer;
+}
+
+/*========== end globals ==========*/
+

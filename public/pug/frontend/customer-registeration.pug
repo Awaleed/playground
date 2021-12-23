@@ -1,0 +1,35 @@
+doctype html
+html(dir="rtl", lang="ar")
+  include ./mixins/all.pug
+  +head(" تسجيل الدخول برقم الجوال ")
+  body.g-color-bg
+    .container-fluid
+      // auth
+      .auth.text-center.mx-auto
+        img.img-fluid(src="./images/5.png", alt="food")
+        h6.img-title قم ببيع اكلاتك
+        div.type-container
+          h6.title.title-font مرحبا بك
+          p تسجيل جديد
+
+          +input-font-icon("text", "mbi-user", "اسم المستخدم")
+          +input-font-icon("emain", "mbi-envelope", "البريد الالكتروني")
+          +input-img-icon("password", "lock.png", "كلمة المرور")
+          +input-img-icon("password", "lock.png", "تاكيد كلمة المرور")
+          .mb-5.position-relative.input-style-container
+            .form-check.terms-conditions
+              label.form-check-label.text-start(for="flexcheckDefault1")
+                | التسجيل في التطبيق يعني انك توافق على
+                br
+                a.m-color-text.text-decoration-none.border-bottom.md-color-text-hover(href="#") الشروط و الاحكام
+              input.form-check-input.px-0#flexcheckDefault1(type="checkbox", checked)
+
+          .actions.mb-3
+            a.new(href="#") تسجيل
+            a.arrow(href="#")
+              i.mbi.mbi-arrow-left
+          p
+            | لديك حساب ؟
+            a.m-color-text.mx-1.text-decoration-none.md-color-text-hover(href="login-with-phone.html")  تسجيل دخول
+
+    include ./includes/scripts

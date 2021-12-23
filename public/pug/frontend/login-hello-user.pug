@@ -1,0 +1,28 @@
+doctype html
+html(dir="rtl", lang="ar")
+  include ./mixins/all.pug
+  +head(" مرحبا Rahma Mohamed ")
+  body.g-color-bg
+    .container-fluid
+      // auth
+      .auth.text-center.mx-auto
+        img.img-fluid(src="./images/5.png", alt="food")
+        h6.img-title تحتاج أكلة  ؟
+        div.type-container
+          h6.title.fw-normal مرحبا Rahma Mohamed
+          p ادخل كلمة المرور
+          .mb-3.position-relative.input-style-container.form-floating
+            i.mbi.mbi-eye.icon.show-password.pointer
+            input.input-style.form-control(type="password", placeholder="كلمة المرور")
+            label كلمة المرور
+
+          .actions.mb-2
+            a.new(href="customer-registeration.html")
+             i.mbi.mbi-arrow-right
+             | التالي
+            a.arrow(href="#")
+              i.mbi.mbi-arrow-left
+          p.resend-code.text-start.mb-3
+            a.text-dark.text-decoration-none.border-bottom.md-color-text-hover(href="#") ليس انت ؟
+
+    include ./includes/scripts
