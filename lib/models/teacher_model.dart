@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:enum_to_string/enum_to_string.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:playground/main.dart';
@@ -8,29 +10,39 @@ import 'value_with_id_model.dart';
 
 part 'teacher_model.g.dart';
 
-final status = <int, FilterType>{};
-final localNotes = <int, String?>{};
+CollectionReference status =
+    FirebaseFirestore.instance.collection('taleb_status');
+CollectionReference localNotes =
+    FirebaseFirestore.instance.collection('taleb_notes');
 
 @JsonSerializable(fieldRename: FieldRename.snake, explicitToJson: true)
 class TeacherModel {
-  set filterType(FilterType value) {
-    status[id] = value;
+  Future setFilterType(FilterType value) async {
+    await status
+        .doc('$id')
+        .set({'value': EnumToString.convertToString(value)})
+        .then(
+            (value) => print("'full_name' & 'age' merged with existing data!"))
+        .catchError((error) => print("Failed to merge data: $error"));
   }
 
-  String? get localNote {
-    return localNotes[id];
+  Future<FilterType?> get filterType {
+    return status.doc('$id').get().then(
+      (value) {
+        final f = value.get('value') ??
+            EnumToString.convertToString(FilterType.uncategorized);
+        return EnumToString.fromString(FilterType.values, f.toString());
+      },
+    );
   }
 
-  set localNote(String? value) {
-    localNotes[id] = value;
-  }
+  // String? get localNote {
+  //   return localNotes[id];
+  // }
 
-  FilterType get filterType {
-    if (!status.containsKey(id)) {
-      status.addEntries([MapEntry(id, FilterType.uncategorized)]);
-    }
-    return status[id] ?? FilterType.uncategorized;
-  }
+  // set localNote(String? value) {
+  //   localNotes[id] = value;
+  // }
 
   double get profileCompletionPercentage =>
       (personalInfoCompletion.finishedFields /

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:supercharged/supercharged.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:split_view/split_view.dart';
 
@@ -13,7 +15,11 @@ import 'helpers/ui_utils.dart';
 import 'models/teacher_model.dart';
 import 'teacher_details/teacher_details.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const MyApp());
 }
 
@@ -354,36 +360,39 @@ class TeacherCard extends StatelessWidget {
               ? kMainColor.shade200
               : UiUtils.getWhiteColorWithBrightness(context),
           title: Text(value.nameAr ?? 'NULL'),
-          trailing: PopupMenuButton<FilterType>(
-            // value: value.filterType,
-            itemBuilder: (context) => FilterType.values
-                .sublist(1)
-                .map(
-                  (e) => PopupMenuItem<FilterType>(
-                    value: e,
-                    child: Text(e.name),
+          trailing: FutureBuilder<FilterType?>(
+            future: value.filterType,
+            builder: (context, snapshot) {
+              final f = snapshot.data ?? FilterType.uncategorized;
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    height: 100,
+                    width: 20,
+                    color: f.color,
                   ),
-                )
-                .toList(),
-
-            // child: value.filterType.name,
-            onSelected: (value) {
-              setState(() {
-                this.value.filterType = value;
-              });
+                  PopupMenuButton<FilterType>(
+                    initialValue: f,
+                    itemBuilder: (context) => FilterType.values
+                        .sublist(1)
+                        .map(
+                          (e) => PopupMenuItem<FilterType>(
+                            value: e,
+                            child: Text(e.name),
+                          ),
+                        )
+                        .toList(),
+                    onSelected: (value) async {
+                      await this.value.setFilterType(value);
+                      setState(() {});
+                    },
+                  ),
+                ],
+              );
             },
           ),
-          leading: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                height: 100,
-                width: 20,
-                color: value.filterType.color,
-              ),
-              UiUtils.buildAvatarImage(value.img),
-            ],
-          ),
+          leading: UiUtils.buildAvatarImage(value.img),
           subtitle: Row(
             children: [
               Text(
